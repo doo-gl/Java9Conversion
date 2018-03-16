@@ -1,0 +1,65 @@
+buildscript {
+    ext {
+        springBootVersion = '1.3.8.RELEASE'
+    }
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath("org.liquibase:liquibase-gradle-plugin:1.2.4")
+        classpath('org.postgresql:postgresql:9.4.1212.jre7')
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'application'
+apply plugin: org.springframework.boot.gradle.SpringBootPlugin
+apply plugin: 'org.liquibase.gradle'
+
+jar {
+    baseName = 'user'
+    version = 'v1-SNAPSHOT'
+}
+
+mainClassName = "doo.gl.user.Application"
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    compile('javax.inject:javax.inject:1')
+    compile('org.hibernate:hibernate-java8')
+    compile('org.postgresql:postgresql')
+    compile('org.projectlombok:lombok:1.16.14')
+    compile('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
+    compile('com.fasterxml.jackson.datatype:jackson-datatype-jdk8')
+
+    compile('org.springframework.boot:spring-boot-starter-data-jpa')
+    compile('org.springframework.boot:spring-boot-starter-web')
+
+    testCompile('org.springframework.boot:spring-boot-starter-test')
+}
+liquibase {
+    activities {
+        prod {
+            changeLogFile 'src/main/resources/db/changelog-master.xml'
+            url project.ext.has("prodUrl") ? project.prodUrl : null;
+            username project.ext.has("prodUsername") ? project.prodUsername : null;
+            password project.ext.has("prodPassword") ? project.prodPassword : null;
+            logLevel 'debug'
+            defaultSchemaName 'public'
+        }
+    }
+    runList = project.ext.has("runList") ? project.runList : null;
+
+//	gradle clean update -PprodUrl=jdbc:postgresql://localhost:5432/postgres -PprodUsername=postgres -PprodPassword=postgres -PrunList=prod
+//	docker run -p 5432:5432 postgres:9.6
+}
+
